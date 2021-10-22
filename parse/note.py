@@ -1,9 +1,10 @@
 "Contains the Note class."
 
 import re
-from felix.parse.tokens import LineTypes, Tokens
+from felix.parse.tokens import ComponentTypes, Tokens, Backend
 
-class Note:
+
+class Note(Backend):
     "For representing notes."
     def __init__(self, pitch, length):
         "For representing notes."
@@ -12,12 +13,12 @@ class Note:
         self.length = length
 
     @staticmethod
-    def test_token(self, string, line_type):
-        if line_type in (LineTypes.RIGHT, LineTypes.LEFT):
+    def test_token(string, line_type):
+        if line_type in (ComponentTypes.RIGHT, ComponentTypes.LEFT):
             maybe_test = r'^(1|2|4|8|16)$'
             note_test = r'^(1|2|4|8|16)?[A-Ga-g](b|#|n)?\.?$'
 
             if re.match(maybe_test, string):
                 return Tokens.MAYBE
-            elif re.match(note_test, string):
+            if re.match(note_test, string):
                 return Tokens.NOTE
