@@ -35,14 +35,23 @@ class Backend:
 
 
 class Token:
-    def __init__(self, source, component_type, backend):
+    def __init__(self, source, component_type, backend, line_num, line_source):
         self.source = source
         self.component_type = component_type
         self.backend = backend
+        self.line_num = line_num
+        self.line_source = line_source
 
         self.end = 0
         self.content = ''
         self.type = None
+
+    def __repr__(self):
+        return '<Token: {}, \'{}\', {}>'.format(
+            self.type.name,
+            self.content,
+            self.backend.__name__
+        )
 
     def consume(self):
         token_type = None

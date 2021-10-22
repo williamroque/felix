@@ -44,7 +44,17 @@ class TooManyLines(Error):
 class InvalidToken(Error):
     MESSAGE = """
     {help}Check documentation for component type {component_type}.{reset}
-    {error}ERROR: Invalid token at source line {line}:{reset}
+    {error}ERROR: Invalid token on source line {line}:{reset}
+    {source}
+    ~{cursor}^{reset}
+    """
+    PRIORITY = 0
+
+
+class UnexpectedToken(Error):
+    MESSAGE = """
+    {help}Check documentation for component type {component_type}.{reset}
+    {error}ERROR: Expected {expected_token} but got {token} on source line {line}:{reset}
     {source}
     ~{cursor}^{reset}
     """
