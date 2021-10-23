@@ -43,7 +43,7 @@ class Note(Backend):
 
     @staticmethod
     def build_expectations(token):
-        return Expectation(ExpectationTypes.AUTO, None),
+        return Expectation(ExpectationTypes.NEXT, (Tokens.BLANK, Tokens.GROUP_END)),
 
     @staticmethod
     def build_node(token):

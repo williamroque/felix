@@ -18,5 +18,4 @@ class Parser:
         token_tensor.construct()
 
         grammar = Grammar(token_tensor)
-
-        return grammar.parse()
+        grammar.analyze()

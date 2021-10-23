@@ -4,6 +4,7 @@ import re
 
 class Error:
     MESSAGE = 'Parsing error.'
+    ALTERNATIVE_MESSAGES = []
     PRIORITY = 1
 
     FORMATS = {
@@ -14,14 +15,21 @@ class Error:
     }
 
     def __init__(self, **kwargs):
+        self.message = None
+
         try:
             self.message = self.__class__.MESSAGE.format(
                 **kwargs | Error.FORMATS
             )
         except KeyError:
-            self.message = self.__class__.ALTERNATIVE_MESSAGE.format(
-                **kwargs | Error.FORMATS
-            )
+            for message in self.__class__.ALTERNATIVE_MESSAGES:
+                try:
+                    self.message = message.format(**kwargs | Error.FORMATS)
+                    break
+                except KeyError:
+                    pass
+            else:
+                self.message = 'Parsing error.'
 
         self.message = self.message.strip()
         self.message = re.sub(r' {4}', '', self.message)
@@ -61,14 +69,22 @@ class InvalidToken(Error):
 class UnexpectedToken(Error):
     MESSAGE = """
     {help}Check documentation for component type {component_type}.{reset}
-    {error}ERROR: Expected {expected_token} but got {token} on source line {line}:{reset}
+    {error}ERROR: Expected one of [{expected_tokens}] but got {token} on source line {line}:{reset}
     {source}
     ~{cursor}^{reset}
     """
-    ALTERNATIVE_MESSAGE = """
-    {help}Check documentation for component type {component_type}.{reset}
-    {error}ERROR: Unexpected {token} on source line {line}:{reset}
-    {source}
-    ~{cursor}^{reset}
-    """
+    ALTERNATIVE_MESSAGES = [
+        """
+        {help}Check documentation for component type {component_type}.{reset}
+        {error}ERROR: Expected {expected_token} but got {token} on source line {line}:{reset}
+        {source}
+        ~{cursor}^{reset}
+        """,
+        """
+        {help}Check documentation for component type {component_type}.{reset}
+        {error}ERROR: Unexpected {token} on source line {line}:{reset}
+        {source}
+        ~{cursor}^{reset}
+        """
+    ]
     PRIORITY = 0

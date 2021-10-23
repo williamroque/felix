@@ -4,6 +4,7 @@ import re
 
 class Tokens(Enum):
     MAYBE                      = auto()
+    BOL                        = 'BOL'
     BLANK                      = 'BLANK'
     NOTE                       = '<Note>'
     GROUP_START                = '('
@@ -11,6 +12,11 @@ class Tokens(Enum):
     GROUP_ANNOTATION_START     = '['
     GROUP_ANNOTATION_END       = ']'
     GROUP_ANNOTATION           = '<Annotation>'
+    G_CLEF                     = 'GC'
+    F_CLEF                     = 'FC'
+    TIME_SIGNATURE             = 'p/q'
+    KEY_SIGNATURE              = '<Key>'
+    BAR                        = '|'
 
 
 class ComponentTypes(Enum):

@@ -16,6 +16,17 @@ class Tree:
         self.line_expectations = []
         self.next_expectation = None
 
+    def __repr__(self):
+        output = 'Tree\n'
+
+        for child in self.children:
+            output += re.sub('(^|\n)', '\\1\t', repr(child))
+
+            if child.is_leaf:
+                output += '\n'
+
+        return output
+
     def check_token(self, token):
         if token.backend.require_expectation(token.type):
             if not (
@@ -32,14 +43,25 @@ class Tree:
                 error.effect()
 
         if self.next_expectation is not None and token.type not in self.next_expectation:
-            error = UnexpectedToken(
+            error_arguments = dict(
                 component_type = self.component_type.name,
-                expected_token = self.next_expectation[0].value,
                 token = token.type.value,
                 line = token.line_num + 1,
                 source = token.line_source,
                 char_index = self.char_index
             )
+
+            if len(self.next_expectation) > 1:
+                possible_tokens = set()
+
+                for expectation in self.next_expectation:
+                    possible_tokens.add(expectation.value)
+
+                error_arguments['expected_tokens'] = '; '.join(possible_tokens)
+            else:
+                error_arguments['expected_token'] = self.next_expectation[0].value
+
+            error = UnexpectedToken(**error_arguments)
             error.effect()
 
     def build_expectations(self, token):
@@ -72,7 +94,7 @@ class Tree:
         self.active_nodes = [node for node in self.active_nodes if not node.is_leaf]
 
     def construct_node(self, token):
-        if token.type is Tokens.BLANK:
+        if token.type is Tokens.BLANK and (self.next_expectation is None or Tokens.BLANK not in self.next_expectation):
             self.char_index += token.end
             return
 
@@ -80,16 +102,17 @@ class Tree:
         self.build_expectations(token)
         self.update_active_nodes(token)
 
-        node = token.backend.build_node(token)
+        if token.type is not Tokens.BLANK:
+            node = token.backend.build_node(token)
 
-        if node is not None:
-            if self.active_nodes:
-                self.active_nodes[-1].add_child(node)
-            else:
-                self.add_child(node)
+            if node is not None:
+                if self.active_nodes:
+                    self.active_nodes[-1].add_child(node)
+                else:
+                    self.add_child(node)
 
-            if not node.is_leaf:
-                self.active_nodes.append(node)
+                if not node.is_leaf:
+                    self.active_nodes.append(node)
 
         self.char_index += token.end
 
@@ -98,26 +121,27 @@ class Tree:
             self.construct_node(token)
 
         if self.line_expectations or self.active_nodes:
-            error = UnexpectedToken(
+            error_arguments = dict(
                 component_type = self.component_type.name,
-                expected_token = self.line_expectations[0][0].value,
                 token = 'EOL',
                 line = token.line_num + 1,
                 source = token.line_source,
                 char_index = len(token.line_source)
             )
+
+            if len(self.line_expectations) > 1:
+                possible_tokens = set()
+
+                for expectations in self.line_expectations:
+                    for expectation in expectations:
+                        possible_tokens.add(expectation.value)
+
+                error_arguments['expected_tokens'] = ' | '.join(possible_tokens)
+            else:
+                error_arguments['expected_token'] = self.line_expectations[0][0].value
+
+            error = UnexpectedToken(**error_arguments)
             error.effect()
-
-    def __repr__(self):
-        output = 'Tree\n'
-
-        for child in self.children:
-            output += re.sub('(^|\n)', '\\1\t', repr(child))
-
-            if child.is_leaf:
-                output += '\n'
-
-        return output
 
     def add_child(self, child):
         self.children.append(child)

@@ -1,12 +1,15 @@
 from felix.parse.note import Note
 from felix.parse.group import Group
 from felix.parse.blank import Blank
+from felix.parse.signature import Signature
+from felix.parse.bar import Bar
+from felix.parse.bol import BOL
 from felix.parse.token.tokens import ComponentTypes, Token, Tokens
 from felix.parse.errors import TooManyLines, InvalidToken
 
 
 class TokenTensor:
-    TOKEN_BACKENDS = [Note, Blank, Group]
+    TOKEN_BACKENDS = [Signature, Note, Bar, Blank, Group]
 
     def __init__(self, source):
         self.source = source
@@ -38,7 +41,10 @@ class TokenTensor:
         return longest
 
     def get_tokens(self, line_num, component, component_type):
-        token_list = []
+        bol_token = Token('', component_type, BOL, line_num, component)
+        bol_token.type = Tokens.BOL
+
+        token_list = [bol_token]
 
         original_component = component
         char_index = 0
