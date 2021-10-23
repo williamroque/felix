@@ -12,13 +12,13 @@ class Group(Backend):
     def __init__(self, children):
         "For representing annotated groups of notes."
 
-        self.members = children[:-1]
+        self.children = children[:-1]
         self.annotations = children[-1]
 
     def __repr__(self):
         output = '<Group: {}>'.format(self.annotations)
 
-        for member in self.members:
+        for member in self.children:
             output += '\n' + re.sub('(^|\n)', '\\1\t', repr(member))
 
         return output

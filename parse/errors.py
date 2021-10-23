@@ -11,6 +11,7 @@ class Error:
         'reset': '\033[0m',
         'cursor': '\033[31m',
         'error': '\033[31m',
+        'warning': '\u001b[33m',
         'help': '\033[32m->\x1B[3m '
     }
 
@@ -40,7 +41,7 @@ class Error:
         self.priority = self.__class__.PRIORITY
 
     def effect(self):
-        sys.stderr.write(self.message)
+        sys.stderr.write(self.message + '\n')
         sys.stderr.flush()
 
         if self.priority == 0:
@@ -61,7 +62,7 @@ class InvalidToken(Error):
     {help}Check documentation for component type {component_type}.{reset}
     {error}ERROR: Invalid token on source line {line}:{reset}
     {source}
-    ~{cursor}^{reset}
+    ~{error}^{reset}
     """
     PRIORITY = 0
 
@@ -71,20 +72,30 @@ class UnexpectedToken(Error):
     {help}Check documentation for component type {component_type}.{reset}
     {error}ERROR: Expected one of [{expected_tokens}] but got {token} on source line {line}:{reset}
     {source}
-    ~{cursor}^{reset}
+    ~{error}^{reset}
     """
     ALTERNATIVE_MESSAGES = [
         """
         {help}Check documentation for component type {component_type}.{reset}
         {error}ERROR: Expected {expected_token} but got {token} on source line {line}:{reset}
         {source}
-        ~{cursor}^{reset}
+        ~{error}^{reset}
         """,
         """
         {help}Check documentation for component type {component_type}.{reset}
         {error}ERROR: Unexpected {token} on source line {line}:{reset}
         {source}
-        ~{cursor}^{reset}
+        ~{error}^{reset}
         """
     ]
     PRIORITY = 0
+
+
+class InvalidMeasure(Error):
+    MESSAGE = """
+    {help}Try changing note lengths or adding rests.{reset}
+    {warning}WARNING: Wrong measure length on sheet line {line} (expected {beats} beats):{reset}
+    {source}
+    ~{warning}^{reset}
+    """
+    PRIORITY = 1

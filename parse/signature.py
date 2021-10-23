@@ -5,8 +5,8 @@ from felix.parse.grammar.expectations import ExpectationTypes, Expectation
 from felix.parse.grammar.tree import Node, Leaf
 
 
-key_pattern = re.compile(r'^[A-G](b|#)$', re.I)
-maybe_key_pattern = re.compile(r'^[A-G]$', re.I)
+key_pattern = re.compile(r'^[A-G](b|#),$', re.I)
+maybe_key_pattern = re.compile(r'^[A-G](b|#)?$', re.I)
 
 time_pattern = re.compile(r'^([1-9][0-9]?/[1-9][0-9]?|C)$', re.I)
 maybe_time_pattern = re.compile(r'^[1-9][0-9]?/?$', re.I)
@@ -21,7 +21,7 @@ class Signature(Backend):
             self.key_signature = children[1:]
         else:
             self.time = 'C'
-            self.key_signature = children[1:]
+            self.key_signature = children
 
     def __repr__(self):
         return '<Signature: {} {} [{}]>'.format(
