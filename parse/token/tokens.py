@@ -4,14 +4,13 @@ import re
 
 class Tokens(Enum):
     MAYBE                      = auto()
-    BLANK                      = auto()
-    NOTE                       = auto()
-    GROUP_START                = auto()
-    GROUP_END                  = auto()
-    GROUP_ANNOTATION_START     = auto()
-    GROUP_ANNOTATION_END       = auto()
-    GROUP_ANNOTATION_SEPARATOR = auto()
-    GROUP_ANNOTATION           = auto()
+    BLANK                      = 'BLANK'
+    NOTE                       = '<Note>'
+    GROUP_START                = '('
+    GROUP_END                  = ')'
+    GROUP_ANNOTATION_START     = '['
+    GROUP_ANNOTATION_END       = ']'
+    GROUP_ANNOTATION           = '<Annotation>'
 
 
 class ComponentTypes(Enum):

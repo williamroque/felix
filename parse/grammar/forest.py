@@ -20,7 +20,7 @@ class Bioregion:
             for tree in forest:
                 output += repr(tree)
 
-            output += '\n' + '-' * 10 + '\n'
+            output += '\n'
 
         return output
 
@@ -31,6 +31,7 @@ class Bioregion:
             for component in line:
                 tree = Tree()
 
+                char_index = 0
                 line_expectations = []
                 next_expectation = None
                 active_nodes = []
@@ -39,20 +40,24 @@ class Bioregion:
 
                 for token in component[1:]:
                     if token.type is Tokens.BLANK:
+                        char_index += token.end
                         continue
                     
-                    if next_expectation is not None and token.token_type not in next_expectation:
+                    if next_expectation is not None and token.type not in next_expectation:
                         error = UnexpectedToken(
-                            component_type = component_type,
-                            expected_token = next_expectation.token_type.name,
-                            token = token.token_type.name,
-                            line_num = token.line_num,
+                            component_type = component_type.name,
+                            expected_token = next_expectation[0].value,
+                            token = token.type.value,
+                            line = token.line_num + 1,
                             source = token.line_source,
-                            char_index = token.end - len(token.content)
+                            char_index = char_index
                         )
                         error.effect()
+                    else:
+                        next_expectation = None
 
-                    line_expectations = [exp for exp in line_expectations if token.token_type not in exp]
+                    if line_expectations and token.type in line_expectations[-1]:
+                        line_expectations.pop()
 
                     expectations = token.backend.build_expectation(token)
                     if type(expectations) != tuple:
@@ -91,17 +96,18 @@ class Bioregion:
                         if not node.is_leaf:
                             active_nodes.append(node)
 
+                    char_index += token.end
+
                 if line_expectations or active_nodes:
                     error = UnexpectedToken(
-                        component_type = component_type,
-                        expected_token = line_expectations[0].token_type.name,
+                        component_type = component_type.name,
+                        expected_token = line_expectations[0][0].value,
                         token = 'EOL',
-                        line_num = token.line_num,
+                        line = token.line_num + 1,
                         source = token.line_source,
                         char_index = len(token.line_source)
                     )
                     error.effect()
-
 
                 forest.append(tree)
 

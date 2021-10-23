@@ -4,18 +4,24 @@ import re
 
 from felix.parse.token.tokens import Tokens, ComponentTypes, Backend
 from felix.parse.grammar.expectations import ExpectationTypes, Expectation
-from felix.parse.grammar.tree import Node
+from felix.parse.grammar.tree import Node, Leaf
 
 
 class Group(Backend):
     "For representing annotated groups of notes."
-    def __init__(self, elements):
+    def __init__(self, children):
         "For representing annotated groups of notes."
 
-        self.elements = elements
+        self.members = children[:-1]
+        self.annotations = children[-1]
 
     def __repr__(self):
-        return '<Group>'
+        output = '<Group: {}>'.format(self.annotations)
+
+        for member in self.members:
+            output += '\n' + re.sub('(^|\n)', '\\1\t', repr(member))
+
+        return output
 
     @staticmethod
     def test_token(string, component_type):
@@ -30,8 +36,6 @@ class Group(Backend):
                 return Tokens.GROUP_ANNOTATION_START
             if string == ']':
                 return Tokens.GROUP_ANNOTATION_END
-            if string == ';':
-                return Tokens.GROUP_ANNOTATION_SEPARATOR
             if (test := Group.incremental_test(
                     annotation_tests,
                     string,
@@ -42,30 +46,32 @@ class Group(Backend):
     @staticmethod
     def build_expectation(token):
         if token.type is Tokens.GROUP_START:
-            return Expectation(Tokens.GROUP_END, ExpectationTypes.LINE)
+            return Expectation(ExpectationTypes.LINE, Tokens.GROUP_END)
         if token.type is Tokens.GROUP_END:
-            return Expectation(Tokens.GROUP_ANNOTATION_START, ExpectationTypes.NEXT)
+            return Expectation(ExpectationTypes.NEXT, Tokens.GROUP_ANNOTATION_START)
         if token.type is Tokens.GROUP_ANNOTATION_START:
-            return (
-                Expectation(Tokens.GROUP_ANNOTATION_END, ExpectationTypes.LINE),
-                Expectation(Tokens.GROUP_ANNOTATION, ExpectationTypes.NEXT),
-            )
+            return Expectation(ExpectationTypes.NEXT, Tokens.GROUP_ANNOTATION)
         if token.type is Tokens.GROUP_ANNOTATION:
-            return Expectation((
+            return Expectation(ExpectationTypes.NEXT, (
                 Tokens.GROUP_ANNOTATION_END,
                 Tokens.GROUP_ANNOTATION
-            ), ExpectationTypes.NEXT),
+            )),
 
-        return Expectation(None, ExpectationTypes.AUTO)
+        return Expectation(ExpectationTypes.AUTO, None)
 
     @staticmethod
     def build_node(token):
         if token.type is Tokens.GROUP_START:
             return Node(Tokens.GROUP_ANNOTATION_END, False, Group)
         if token.type is Tokens.GROUP_ANNOTATION_START:
-            return Node(Tokens.GROUP_ANNOTATION_END, True, Annotation)
+            return Node(Tokens.GROUP_ANNOTATION_END, True, Annotations)
+        if token.type is Tokens.GROUP_ANNOTATION:
+            return Leaf(token.content)
 
 
-class Annotation:
+class Annotations:
     def __init__(self, annotations):
         self.annotations = annotations
+
+    def __repr__(self):
+        return ' '.join(self.annotations)

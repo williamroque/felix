@@ -61,7 +61,7 @@ class Node:
                 child.collapse()
 
         self.content = self.backend(
-            self.children,
+            [child.content for child in self.children],
             *self.backend_arguments
         )
         self.children = []

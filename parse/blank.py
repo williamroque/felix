@@ -21,7 +21,7 @@ class Blank(Backend):
 
     @staticmethod
     def build_expectation(token):
-        return Expectation(None, ExpectationTypes.AUTO)
+        return Expectation(ExpectationTypes.AUTO, None)
 
     @staticmethod
     def build_node(token):
