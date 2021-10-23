@@ -44,20 +44,27 @@ class Group(Backend):
                 return test
 
     @staticmethod
-    def build_expectation(token):
+    def require_expectation(token):
+        return token in (Tokens.GROUP_END, Tokens.GROUP_ANNOTATION, Tokens.GROUP_ANNOTATION_END)
+
+    @staticmethod
+    def build_expectations(token):
         if token.type is Tokens.GROUP_START:
-            return Expectation(ExpectationTypes.LINE, Tokens.GROUP_END)
+            return Expectation(ExpectationTypes.LINE, Tokens.GROUP_END),
         if token.type is Tokens.GROUP_END:
-            return Expectation(ExpectationTypes.NEXT, Tokens.GROUP_ANNOTATION_START)
+            return Expectation(ExpectationTypes.NEXT, Tokens.GROUP_ANNOTATION_START),
         if token.type is Tokens.GROUP_ANNOTATION_START:
-            return Expectation(ExpectationTypes.NEXT, Tokens.GROUP_ANNOTATION)
+            return (
+                Expectation(ExpectationTypes.NEXT, Tokens.GROUP_ANNOTATION),
+                Expectation(ExpectationTypes.LINE, Tokens.GROUP_ANNOTATION_END)
+            )
         if token.type is Tokens.GROUP_ANNOTATION:
             return Expectation(ExpectationTypes.NEXT, (
                 Tokens.GROUP_ANNOTATION_END,
                 Tokens.GROUP_ANNOTATION
             )),
 
-        return Expectation(ExpectationTypes.AUTO, None)
+        return Expectation(ExpectationTypes.AUTO, None),
 
     @staticmethod
     def build_node(token):

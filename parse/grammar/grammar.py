@@ -7,6 +7,6 @@ class Grammar:
 
     def parse(self):
         bioregion = Bioregion(self.token_tensor)
-        bioregion.plant()
+        bioregion.construct()
 
         return bioregion

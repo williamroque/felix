@@ -14,7 +14,14 @@ class Error:
     }
 
     def __init__(self, **kwargs):
-        self.message = self.__class__.MESSAGE.format(**kwargs | Error.FORMATS)
+        try:
+            self.message = self.__class__.MESSAGE.format(
+                **kwargs | Error.FORMATS
+            )
+        except KeyError:
+            self.message = self.__class__.ALTERNATIVE_MESSAGE.format(
+                **kwargs | Error.FORMATS
+            )
 
         self.message = self.message.strip()
         self.message = re.sub(r' {4}', '', self.message)
@@ -55,6 +62,12 @@ class UnexpectedToken(Error):
     MESSAGE = """
     {help}Check documentation for component type {component_type}.{reset}
     {error}ERROR: Expected {expected_token} but got {token} on source line {line}:{reset}
+    {source}
+    ~{cursor}^{reset}
+    """
+    ALTERNATIVE_MESSAGE = """
+    {help}Check documentation for component type {component_type}.{reset}
+    {error}ERROR: Unexpected {token} on source line {line}:{reset}
     {source}
     ~{cursor}^{reset}
     """
