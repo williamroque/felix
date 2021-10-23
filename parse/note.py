@@ -60,7 +60,7 @@ class Note(Backend):
             octave = int(group)
 
         if (group := match.group('semitone')) is not None:
-            semitone = int(group)
+            semitone = group
 
         if match.group('dot') is not None:
             dotted = True

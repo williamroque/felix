@@ -2,6 +2,7 @@ import re
 
 from felix.parse.grammar.tree import Node, Leaf, Tree
 from felix.parse.grammar.expectations import ExpectationTypes
+from felix.parse.token.tokens import Tokens
 from felix.parse.errors import UnexpectedToken
 
 
@@ -37,7 +38,10 @@ class Bioregion:
                 component_type = component[0]
 
                 for token in component[1:]:
-                    if next_expectation is not None and token.token_type is not next_expectation:
+                    if token.type is Tokens.BLANK:
+                        continue
+                    
+                    if next_expectation is not None and token.token_type not in next_expectation:
                         error = UnexpectedToken(
                             component_type = component_type,
                             expected_token = next_expectation.token_type.name,
@@ -48,14 +52,24 @@ class Bioregion:
                         )
                         error.effect()
 
-                    line_expectations = [exp for exp in line_expectations if token.token_type is not exp]
+                    line_expectations = [exp for exp in line_expectations if token.token_type not in exp]
 
-                    expectation = token.backend.build_expectation(token)
+                    expectations = token.backend.build_expectation(token)
+                    if type(expectations) != tuple:
+                        expectations = tuple([expectations])
 
-                    if expectation.type is ExpectationTypes.LINE:
-                        line_expectations.append(expectation.token_type)
-                    elif expectation.type is ExpectationTypes.NEXT:
-                        next_expectation = expectation.token_type
+                    for expectation in expectations:
+                        if expectation.type is ExpectationTypes.AUTO:
+                            continue
+
+                        token_type = expectation.token_type
+                        if not isinstance(token_type, tuple):
+                            token_type = tuple([token_type])
+
+                        if expectation.type is ExpectationTypes.LINE:
+                            line_expectations.append(token_type)
+                        elif expectation.type is ExpectationTypes.NEXT:
+                            next_expectation = token_type
 
                     for active_node in active_nodes[::-1]:
                         if token.type is active_node.terminator:
